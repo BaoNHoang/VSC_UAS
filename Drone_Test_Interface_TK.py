@@ -2,11 +2,11 @@ import tkinter as tk
 import os
 from tkinter import *
 
-class Paint:
+class Drone:
     def __init__(self, root):
         self.root = root
-        self.root.title("Paint")
-        self.root.title("CNU Paint")
+        self.root.title("Drone")
+        self.root.title("Drone Test Interface")
         self.root.geometry("800x600")
         self.canvas = tk.Canvas(self.root, bg="black")
         self.canvas.grid(row=1, column=0, columnspan=5, sticky="nsew")
@@ -44,20 +44,10 @@ class Paint:
         # Created method for clearing all
         self.entry1.delete(0, END)
 
-    # Methods used for handling commands
-    def change_square(self):
-        self.pen_shape = 'square'
-
-    def change_circle(self):
-        self.pen_shape = 'circle'
-
-    def change_poly(self):
-        self.pen_shape = 'poly'
-
 
 if __name__ == "__main__":
     root = tk.Tk()
     root.rowconfigure(1, weight=1)
     root.columnconfigure(0, weight=1)
-    app = Paint(root)
+    app = Drone(root)
     root.mainloop()
