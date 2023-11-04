@@ -1,129 +1,91 @@
-
 import tkinter as tk
-import matplotlib.pyplot as plt
-import numpy as np
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-from tkinter import messagebox
+from tkinter import colorchooser
+from PIL import ImageGrab
+import os
+from tkinter import *
+from tkinter import filedialog
 
 
-class Grapher(tk.Frame):
-    def __init__(self, master=None):
-        super().__init__(master)
-        self.master = master
-        self.pack()
+class Paint:
+    def __init__(self, root):
+        self.image = os.path.join('data', 'Kw.png')
+        self.root = root
+        self.root.title("Paint")
+        self.root.title("CNU Paint")
+        self.root.geometry("800x600")
+        self.canvas = tk.Canvas(self.root, bg="white")
+        self.canvas.grid(row=1, column=0, columnspan=5, sticky="nsew")
         self.create_widgets()
-        self.offset = 0
+
+    def colors(self):
+        # Color pallet
+        color_num = colorchooser.askcolor(title="Color Options")
+        self.pen_color = color_num[1]
 
     def create_widgets(self):
-        # Create a canvas widget to graph the function
-        self.canvas = tk.Canvas(self, width=500, height=500)
-        self.canvas.grid(row=1, column=2, columnspan=3, sticky="nsew")
+        self.funclabel = tk.Label(root, text=':')
+        self.funclabel.place(x=0, y=0)
 
-        # Initialize the canvas widget
-        self.fig = plt.figure()
-        self.canvas_agg = FigureCanvasTkAgg(self.fig, master=self.canvas)
-        self.canvas_agg.draw()
-        self.canvas_agg.get_tk_widget().pack()
+        # Creating Menubar
+        menubar = tk.Menu(root)
+        # Adding File Menu and commands
+        file = tk.Menu(menubar, tearoff=0)
+        menubar.add_cascade(label='File', menu=file)
+        file.add_command(label='Save', command=self.getter)
+        file.add_separator()
+        file.add_command(label='Exit', command=root.destroy)
+        file.add_command(label='How I Felt About This Lab', command=self.show_image)
 
-        # Text entry for graph one
-        self.func = tk.Entry(self)
-        self.funclabel = tk.Label(self, text='Function 1')
-        self.funclabel.grid(row=2, column=1, columnspan=1, sticky="ew")
-        self.func.grid(row=3, column=1, columnspan=1, sticky="ew")
+        # Adding Edit Menu and commands
+        edit = tk.Menu(menubar, tearoff=0)
+        menubar.add_cascade(label='Edit', menu=edit)
+        # Changing brush types in nested menu
+        nedit = tk.Menu(menubar, tearoff=0)
+        edit.add_cascade(label='Brush Options', menu=nedit)
+        nedit.add_command(label='Square', command=self.change_square)
+        nedit.add_command(label='Circle', command=self.change_circle)
+        nedit.add_command(label='Triangle', command=self.change_poly)
+        # Changing colors
+        edit.add_command(label='Color Options', command=self.colors)
+        edit.add_separator()
+        edit.add_command(label='Clear', command=self.clear)
+        # display Menu
+        root.config(menu=menubar)
 
-        self.min = tk.Entry(self)
-        self.funclabel = tk.Label(self, text='Minimum')
-        self.funclabel.grid(row=2, column=2, columnspan=1, sticky="ew")
-        self.min.grid(row=3, column=2, columnspan=1, sticky="ew")
+    # Saving images to png
+    def getter(self):
+        x = self.root.winfo_rootx() + self.canvas.winfo_x()
+        y = self.root.winfo_rooty() + self.canvas.winfo_y()
+        x1 = x + self.canvas.winfo_width()
+        y1 = y + self.canvas.winfo_height()
+        filename = tk.filedialog.asksaveasfilename()
+        fileloc = os.path.join('data', f'Image {self.filenum}.png')
+        ImageGrab.grab().crop((x + 65, y + 21, x1, y1 - 5)).save(fileloc)
+        self.filenum += 1
 
-        self.max = tk.Entry(self)
-        self.funclabel = tk.Label(self, text='Maximum')
-        self.funclabel.grid(row=2, column=3, columnspan=1, sticky="ew")
-        self.max.grid(row=3, column=3, columnspan=1, sticky="ew")
+    # Hidden changes
+    def show_image(self):
+        gif1 = PhotoImage(file=self.image)
+        self.canvas.create_image(400, 300, image=gif1)
+        self.canvas.gif1 = gif1
 
-        self.point = tk.Entry(self)
-        self.funclabel = tk.Label(self, text='Number of Points')
-        self.funclabel.grid(row=2, column=4, columnspan=1, sticky="ew")
-        self.point.grid(row=3, column=4, columnspan=1, sticky="ew")
+    # Methods used for handling commands
+    def change_square(self):
+        self.pen_shape = 'square'
 
-        # Text entry for graph two
-        self.func1 = tk.Entry(self)
-        self.funclabel = tk.Label(self, text='Function 2')
-        self.funclabel.grid(row=4, column=1, columnspan=1, sticky="ew")
-        self.func1.grid(row=5, column=1, columnspan=1, sticky="ew")
+    def change_circle(self):
+        self.pen_shape = 'circle'
 
-        # Create a button to graph the function
-        self.button = tk.Button(self, text="Graph", command=self.graph)
-        self.button.grid(row=5, column=8, columnspan=5, sticky="ew")
-
-        # Clear button
-        self.button = tk.Button(self, text="Clear", command=self.clear)
-        self.button.grid(row=4, column=8, columnspan=5, sticky="ew")
+    def change_poly(self):
+        self.pen_shape = 'poly'
 
     def clear(self):
-        # Created method for clearing all
-        self.fig.clear()
-        self.canvas_agg.draw()
-        self.func.delete(0, 'end')
-        self.func1.delete(0, 'end')
-        self.min.delete(0, 'end')
-        self.max.delete(0, 'end')
-        self.point.delete(0, 'end')
+        self.canvas.delete('all')
 
 
-    def graph(self):
-        # Takes the info from inputted text
-        sped = ('sin', 'cos', 'tan', 'log', 'sqrt')
-        x = 0
-        # Checks for x values if not to handle crash
-        try:
-            x_mn = self.min.get()
-            x_mx = self.max.get()
-            x_p = self.point.get()
-            x = np.linspace(int(x_mn), int(x_mx), int(x_p))
-        except (SyntaxError, NameError, ValueError):
-            # Print error message and opens new window for error message
-            print('Invalid Possible X-Axis Values')
-            messagebox.showerror("Error Message", 'Invalid Possible X-Axis Values')
-        # No crashes if something happens
-        x_one = self.func.get()
-        if x_one != "":
-            try:
-                # Uses loop to evaluate special cases
-                x1_split = x_one.split('(')
-                for i in x1_split:
-                    if i in sped:
-                        x_one = 'np.' + x_one
-                y = eval(x_one)
-                plt.plot(x, y, label=f'Graph {x_one}')
-                plt.legend()
-            except (SyntaxError, NameError):
-                # Print error message and opens new window for error message
-                print("Function Error: Try Reentering Function One")
-                messagebox.showerror("Error Message", "Function Error: Try Reentering Function One")
-        x_two = self.func1.get()
-        if x_two != "":
-            try:
-                # Uses loop to evaluate special cases
-                x_two_split = x_two.split('(')
-                for i in x_two_split:
-                    if i in sped:
-                        x_two = 'np.' + x_two
-                y2 = eval(x_two)
-                plt.plot(x, y2, label=f'Graph {x_two}')
-                plt.legend()
-            except (SyntaxError, NameError):
-                # Print error message and opens new window for error message
-                print("Function Error: Try Reentering Function Two")
-                messagebox.showerror("Error Message", "Function Error: Try Reentering Function Two")
-        self.canvas_agg.draw()
-        # Increment the offset
-        self.offset += 1
-
-
-if __name__ == '__main__':
-    # Runner for graph maker
-    grapher = tk.Tk()
-    grapher.title("CNU_Desmos")
-    app = Grapher(master=grapher)
-    app.mainloop()
+if __name__ == "__main__":
+    root = tk.Tk()
+    root.rowconfigure(1, weight=1)
+    root.columnconfigure(0, weight=1)
+    app = Paint(root)
+    root.mainloop()
